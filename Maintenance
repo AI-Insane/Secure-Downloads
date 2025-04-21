@@ -1,0 +1,21 @@
+# Maintenance Status: Unmaintained
+
+This project, **Secure Downloads**, is no longer actively maintained. No further updates, bug fixes, or support will be provided.
+
+## What Does This Mean?
+- **No Updates**: The codebase will not receive updates, including new features or security patches.
+- **No Support**: Issues, pull requests, or questions will not be reviewed or addressed.
+- **Use at Your Own Risk**: Users are free to fork or modify the project, but they do so at their own risk.
+
+## Recommendations for Users
+If you wish to continue using this project:
+1. **Fork the Repository**: Create your own copy of the codebase to make changes or improvements as needed.
+2. **Review the Code**: Ensure it meets your security and functional requirements.
+3. **Stay Informed**: Monitor any dependencies used in the project for updates or known vulnerabilities.
+
+## Why Is This Project Unmaintained?
+The author has decided to archive this project due to personal or professional reasons. If you're interested in taking over maintenance, feel free to fork the repository and continue development.
+
+---
+
+Thank you for your understanding.
