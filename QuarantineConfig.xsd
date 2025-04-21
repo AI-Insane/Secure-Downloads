@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- Root Element -->
+    <xs:element name="QuarantineConfig">
+        <xs:complexType>
+            <xs:sequence>
+                <!-- Logging Configuration -->
+                <xs:element name="Logging">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <!-- Full path to the log file -->
+                            <xs:element name="LogPath" type="xs:string"/>
+                            <!-- Log level (e.g., Info, Debug, Error) -->
+                            <xs:element name="LogLevel" type="xs:string"/>
+                            <!-- Whether to include timestamps in logs -->
+                            <xs:element name="IncludeTimestamp" type="xs:boolean"/>
+                            <!-- Log file name -->
+                            <xs:element name="LogName" type="xs:string"/>
+                            <!-- Script version for reference -->
+                            <xs:element name="ScriptVersion" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <!-- Quarantine Configuration -->
+                <xs:element name="Quarantine">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <!-- Path to monitor for new files -->
+                            <xs:element name="MonitoringFolder" type="xs:string"/>
+                            <!-- Path to the folder for safe files -->
+                            <xs:element name="SafeFileTarget" type="xs:string"/>
+                            <!-- Path to the quarantine folder for denied files -->
+                            <xs:element name="DeniedAccessFolder" type="xs:string"/>
+                            <!-- Path to the Kaspersky command-line scanner -->
+                            <xs:element name="KasperskyPath" type="xs:string"/>
+                            <!-- Path to the 7-Zip executable -->
+                            <xs:element name="SevenZipPath" type="xs:string"/> <!-- New element for 7-Zip path -->
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <!-- Self-Repair Configuration -->
+                <xs:element name="SelfRepair">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <!-- Path to the monitoring script -->
+                            <xs:element name="ScriptPath" type="xs:string"/>
+                            <!-- List of repair instructions -->
+                            <xs:element name="RepairInstructions">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- A single repair instruction -->
+                                        <xs:element name="Instruction" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <!-- Trigger condition for repair -->
+                                                    <xs:element name="Trigger" type="xs:string"/>
+                                                    <!-- Code snippet to execute as repair -->
+                                                    <xs:element name="CodeSnippet" type="xs:string"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

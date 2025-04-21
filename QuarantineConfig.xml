@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QuarantineConfig
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="QuarantineConfig.xsd">
+    
+    <!-- Logging Configuration -->
+    <Logging>
+        <LogPath>C:\Users\ryanf\Documents\MonitorLogs\QuarantineWatcher</LogPath> <!-- Full path to the log file -->
+        <LogLevel>Info</LogLevel> <!-- Log level -->
+        <IncludeTimestamp>true</IncludeTimestamp> <!-- Include timestamp in logs -->
+        <LogName>QuarantineWatcher</LogName> <!-- Log file name -->
+        <ScriptVersion>1.0.0</ScriptVersion> <!-- Script version -->
+    </Logging>
+    
+    <!-- Quarantine Configuration -->
+    <Quarantine>
+        <MonitoringFolder>C:\Users\ryanf\Downloads\QuarantineDownloads</MonitoringFolder> <!-- Folder to monitor -->
+        <SafeFileTarget>C:\Users\ryanf\Downloads</SafeFileTarget> <!-- Use Downloads as the Safe Files folder -->
+        <DeniedAccessFolder>C:\Users\ryanf\Downloads\QuarantineDownloads\DeniedAccess</DeniedAccessFolder> <!-- Quarantine folder -->
+        <KasperskyPath>C:\Program Files (x86)\Kaspersky Lab\Kaspersky 21.20\avp.com</KasperskyPath> <!-- Kaspersky command-line scanner path -->
+        <SevenZipPath>C:\Program Files\7-Zip\7z.exe</SevenZipPath> <!-- 7-Zip executable path -->
+    </Quarantine>
+    
+    <!-- Self-Repair Configuration -->
+    <SelfRepair>
+        <ScriptPath>C:\Users\ryanf\Documents\QuarantineWatcher.ps1</ScriptPath> <!-- Path to the script -->
+        <RepairInstructions>
+            <Instruction>
+                <Trigger>Error in logging module</Trigger>
+                <CodeSnippet>
+                    <![CDATA[
+Start-Log -LogPath "C:\Users\ryanf\Documents\MonitorLogs\QuarantineWatcher" -LogName "QuarantineWatcher" -ScriptVersion "1.0.0"
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>Kaspersky scanner not responding</Trigger>
+                <CodeSnippet>
+                    <![CDATA[
+$KasperskyPath = "C:\Program Files (x86)\Kaspersky Lab\Kaspersky 21.20\avp.com"
+Invoke-Expression "& `"$KasperskyPath`" SCAN `"$FilePath`""
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>BurntToast module missing</Trigger>
+                <CodeSnippet>
+                    <![CDATA[
+if (-not (Get-Module -Name BurntToast -ListAvailable)) {
+    Install-Module -Name BurntToast -Force -Scope CurrentUser
+}
+Import-Module -Name BurntToast -ErrorAction Stop
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>Scan result unknown</Trigger> <!-- Added new trigger for unknown result -->
+                <CodeSnippet>
+                    <![CDATA[
+Write-Host "Unknown scan result encountered for: $FilePath. Review Kaspersky output for details."
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>XML validation failed</Trigger>
+                <CodeSnippet>
+                    <![CDATA[
+Validate-XML -XmlPath "C:\Users\ryanf\Documents\QuarantineConfig.xml" -XsdPath "C:\Users\ryanf\Documents\QuarantineConfig.xsd"
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>Temporary file detected</Trigger> <!-- New trigger for handling .tmp files -->
+                <CodeSnippet>
+                    <![CDATA[
+if ((Test-Path -Path $FilePath) -and ($FilePath -like "*.tmp")) {
+    $OriginalFileName = $FilePath -replace ".tmp$", ""
+    Rename-Item -Path $FilePath -NewName $OriginalFileName
+    Write-Host "Temporary file renamed to original file: $OriginalFileName"
+}
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>Large folder handling</Trigger> <!-- New trigger for handling large folders -->
+                <CodeSnippet>
+                    <![CDATA[
+if (Test-Path -Path $FilePath -PathType Container) {
+    Copy-Item -Path $FilePath -Destination $SafeFolder -Recurse -Force
+    Remove-Item -Path $FilePath -Recurse -Force
+    Write-Host "Large folder moved to safe folder: $SafeFolder"
+}
+]]>
+                </CodeSnippet>
+            </Instruction>
+        </RepairInstructions>
+    </SelfRepair>
+</QuarantineConfig>
