@@ -15,9 +15,9 @@
                             <xs:element name="LogLevel" type="xs:string"/>
                             <!-- Whether to include timestamps in logs -->
                             <xs:element name="IncludeTimestamp" type="xs:boolean"/>
-                            <!-- Log file name -->
+                            <!-- Name of the log file -->
                             <xs:element name="LogName" type="xs:string"/>
-                            <!-- Script version for reference -->
+                            <!-- Script version -->
                             <xs:element name="ScriptVersion" type="xs:string"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -36,7 +36,17 @@
                             <!-- Path to the Kaspersky command-line scanner -->
                             <xs:element name="KasperskyPath" type="xs:string"/>
                             <!-- Path to the 7-Zip executable -->
-                            <xs:element name="SevenZipPath" type="xs:string"/> <!-- New element for 7-Zip path -->
+                            <xs:element name="SevenZipPath" type="xs:string"/>
+                            <!-- Enable live progress display -->
+                            <xs:element name="ProgressDisplay" type="xs:boolean"/>
+                            <!-- Scanning stages -->
+                            <xs:element name="ScanStages">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Stage" type="xs:string" maxOccurs="unbounded"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
@@ -58,7 +68,16 @@
                                                     <!-- Trigger condition for repair -->
                                                     <xs:element name="Trigger" type="xs:string"/>
                                                     <!-- Code snippet to execute as repair -->
-                                                    <xs:element name="CodeSnippet" type="xs:string"/>
+                                                    <xs:element name="CodeSnippet">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:string">
+                                                                    <!-- Allow CDATA for repair code snippets -->
+                                                                    <xs:attribute name="cdata" type="xs:boolean" use="optional" default="true"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
                                                 </xs:sequence>
                                             </xs:complexType>
                                         </xs:element>
