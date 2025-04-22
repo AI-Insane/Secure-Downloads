@@ -1,142 +1,125 @@
-# Secure Downloads
+# Update Log for Secure Downloads
 
-***Originally designed by myself to be used by myself for personal use, hoever i have decided to share it and allow its use by those requiring its functions, I offer no support on this script. All information is provided below in terms of whats needed for correct function and results***
+## Date: 2025-04-22
 
-**Secure Downloads** is a PowerShell-based tool designed to monitor, scan, and organize your files securely and efficiently. It integrates antivirus tools, supports archive extraction, logs activities, and provides desktop notifications. The tool is configurable via XML and leverages an XSD schema for validation.
-
----
-
-## Features
-- **Real-Time File Monitoring**: Automatically scans and processes files in specified directories.
-- **Antivirus Integration**: Scans files for viruses using external antivirus tools.
-- **Archive Handling**: Extracts files from archives (e.g., ZIP, RAR).
-- **Quarantine Management**: Detects and isolates suspicious files.
-- **Desktop Notifications**: Alerts users regarding file events and statuses.
-- **Custom Configuration**: Easily modify behavior using an XML configuration file validated by an XSD schema.
-- **Self-Repair**: Automatically repairs or regenerates corrupted configuration files.
+### Summary of Updates
+This update introduces new features, enhancements, and fixes to the **Secure Downloads** project. Key improvements include better handling of temporary files, real-time progress display, enhanced logging for scanning stages, and updates to the XML configuration and XSD schema for better customization and validation.
 
 ---
 
-## Project Structure
-The project consists of the following main components:
+### Key Updates in `SecureDownloads.ps1`
+1. **Temporary File Handling**:
+   - Added functionality to rename `.tmp` files to their original names before processing.
+   - Ensures `.tmp` files are not skipped or ignored.
 
-### 1. **PowerShell Script** (`SecureDownloads.ps1`)
-The main script that performs the following tasks:
-- Monitors the specified download folder.
-- Scans files using antivirus tools.
-- Organizes files into designated folders.
-- Provides notifications and logs file events.
+2. **Live Progress Display**:
+   - Introduced a real-time percentage display in the PowerShell console when processing large files.
+   - Users can now monitor the progress of tasks directly in the terminal.
 
-### 2. **XML Configuration File** (`QuarantineConfig.xml`)
-Defines the configuration for the script, including:
-- Paths to monitor.
-- Antivirus command-line arguments.
-- Log directories.
-- Archive extraction settings.
-- Notification preferences.
+3. **Scanning Stages Logging**:
+   - Included detailed logging for scanning stages (`Quick`, `Heuristic`, `Deep`).
+   - Each stage is logged with timestamps to improve traceability and debugging.
 
-Example XML:
-```xml
-<Configuration>
-  <MonitorFolder>C:\Downloads</MonitorFolder>
-  <LogFolder>C:\Logs</LogFolder>
-  <Antivirus>
-    <Command>path/to/antivirus.exe</Command>
-    <Arguments>--scan --delete</Arguments>
-  </Antivirus>
-  <Notifications enabled="true" />
-</Configuration>
-```
+4. **Improved Self-Repair**:
+   - Enhanced the self-repair module to handle specific errors, such as:
+     - Missing modules like `BurntToast`.
+     - Unknown scan results.
+     - XML validation issues.
+   - Added instructions for handling ZIP files and large folders.
 
-### 3. **XSD Schema** (`QuarantineConfig.xsd`)
-Ensures that the XML configuration file follows the correct structure and format. This helps validate user-defined configurations before execution.
-
-Example XSD:
-```xml
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="Configuration">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="MonitorFolder" type="xs:string" />
-        <xs:element name="LogFolder" type="xs:string" />
-        <xs:element name="Antivirus">
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element name="Command" type="xs:string" />
-              <xs:element name="Arguments" type="xs:string" />
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
-        <xs:element name="Notifications">
-          <xs:complexType>
-            <xs:attribute name="enabled" type="xs:boolean" use="required" />
-          </xs:complexType>
-        </xs:element>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-</xs:schema>
-```
+5. **Dynamic XML Integration**:
+   - Configuration options (e.g., monitoring path, log path) are now dynamically loaded from the XML file.
+   - Explicit paths for utilities like `7z.exe` and `avp.com` are validated and logged.
 
 ---
 
-## Getting Started
+### Changes to `QuarantineConfig.xml`
+1. **New Elements Added**:
+   - **`ProgressDisplay`**: A boolean field to enable or disable real-time progress display.
+   - **`ScanStages`**: User-defined stages (`Quick`, `Heuristic`, `Deep`) to control scanning behavior.
 
-### **Prerequisites**
-- PowerShell 5.1 or later.
-- An antivirus tool with a command-line interface (e.g., Windows Defender, ClamAV).
-- Optional: A ZIP extraction utility if handling archives.
-
-### **Installation**
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/AI-Insane/Secure-Downloads.git
+2. **Example Configuration**:
+   ```xml
+   <QuarantineConfig>
+       <Quarantine>
+           <MonitoringFolder>C:\Downloads\QuarantineDownloads</MonitoringFolder>
+           <SafeFileTarget>C:\Downloads</SafeFileTarget>
+           <DeniedAccessFolder>C:\Downloads\QuarantineDownloads\DeniedAccess</DeniedAccessFolder>
+           <KasperskyPath>C:\Program Files (x86)\Kaspersky Lab\Kaspersky 21.20\avp.com</KasperskyPath>
+           <SevenZipPath>C:\Program Files\7-Zip\7z.exe</SevenZipPath>
+           <ProgressDisplay>true</ProgressDisplay>
+           <ScanStages>
+               <Stage>Quick</Stage>
+               <Stage>Heuristic</Stage>
+               <Stage>Deep</Stage>
+           </ScanStages>
+       </Quarantine>
+   </QuarantineConfig>
    ```
-2. Place the `SecureDownloads.ps1`, `QuarantineConfig.xml`, and `QuarantineConfig.xsd` files in the same directory.
-
-3. Customize the `QuarantineConfig.xml` file to match your system's configuration.
-
-### **Usage**
-Run the script in PowerShell:
-```powershell
-.\SecureDownloads.ps1
-```
 
 ---
 
-## Configuration
+### Updates to `QuarantineConfig.xsd`
+1. **Schema Enhancements**:
+   - Added support for the `ProgressDisplay` element (type: `xs:boolean`).
+   - Defined the `ScanStages` element as a sequence of `Stage` elements (type: `xs:string`, `maxOccurs="unbounded"`).
 
-### **XML Configuration Details**
-The `QuarantineConfig.xml` file allows you to customize the script's behavior. Below is an explanation of the key elements:
-- **`MonitorFolder`**: The folder to monitor for new downloads.
-- **`LogFolder`**: The folder where logs will be saved.
-- **`Antivirus`**:
-  - **`Command`**: Path to the antivirus executable.
-  - **`Arguments`**: Command-line arguments to pass to the antivirus tool.
-- **`Notifications`**: Enable or disable desktop notifications using the `enabled` attribute.
-
-### **Validating XML**
-To validate your XML file against the XSD schema:
-1. Use an XML editor or online validator.
-2. Ensure the XML follows the structure defined in `QuarantineConfig.xsd`.
-
----
-
-## Logging
-- Log files are saved in the directory specified in the `LogFolder` element of `QuarantineConfig.xml`.
-- Logs include details about file scans, errors, and quarantined files.
-
----
-
-## License
-This project is licensed under the [Apache License 2.0](LICENSE).
+2. **Validation Example**:
+   ```xml
+   <xs:element name="Quarantine">
+       <xs:complexType>
+           <xs:sequence>
+               <xs:element name="ProgressDisplay" type="xs:boolean"/>
+               <xs:element name="ScanStages">
+                   <xs:complexType>
+                       <xs:sequence>
+                           <xs:element name="Stage" type="xs:string" maxOccurs="unbounded"/>
+                       </xs:sequence>
+                   </xs:complexType>
+               </xs:element>
+           </xs:sequence>
+       </xs:complexType>
+   </xs:element>
+   ```
 
 ---
 
-## Contributing
-Contributions are welcome! Create a pull request or open an issue to suggest improvements. (As the author, I would kindly request a tag or mention if using this but this is not required)
+### Summary of Improvements Compared to Previous Version
+#### Addressed Issues:
+- **Temporary Files**: `.tmp` files are now processed instead of being skipped.
+- **Real-Time Tracking**: Added a live progress display for large files.
+- **Detailed Logs**: Scanning stages are now logged with timestamps for better analysis.
+
+#### New Features:
+- Customizable `ScanStages` and `ProgressDisplay` options in the XML configuration.
+- Enhanced error handling and self-repair logic.
+
+#### Configuration Enhancements:
+- XML configuration supports additional elements for flexibility.
+- Schema updated to validate new elements and maintain structure.
 
 ---
 
-## Disclaimer
-This software is provided "AS IS," without warranty of any kind. The authors are not responsible for any issues arising from its use.
+### Instructions for Updating
+1. Pull the latest changes:
+   ```bash
+   git pull origin main
+   ```
+
+2. Replace your existing `SecureDownloads.ps1`, `QuarantineConfig.xml`, and `QuarantineConfig.xsd` files with the updated versions.
+
+3. Customize the `QuarantineConfig.xml` file according to your setup.
+
+4. Run the updated script:
+   ```powershell
+   .\SecureDownloads.ps1
+   ```
+
+---
+
+### Notes
+- Ensure that PowerShell 5.1 or later is installed.
+- Validate your XML configuration against the XSD schema before running the script.
+- For issues or suggestions, please create an issue in the repository.
+
+---
