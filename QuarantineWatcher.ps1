@@ -51,14 +51,14 @@ $ConfigXsdPath = "C:\Users\ryanf\Documents\QuarantineConfig.xsd"
 $Config = Load-Configuration -XmlPath $ConfigXmlPath -XsdPath $ConfigXsdPath
 
 # Extract Configuration Parameters
-$LogPath = "C:\Users\ryanf\Documents\MonitorLogs\QuarantineWatcher" # Explicit log file path
+$LogPath = $Config.QuarantineConfig.Logging.LogPath
 $LogLevel = $Config.QuarantineConfig.Logging.LogLevel
 $IncludeTimestamp = [bool]$Config.QuarantineConfig.Logging.IncludeTimestamp
 $MonitoringFolder = $Config.QuarantineConfig.Quarantine.MonitoringFolder
 $SafeFolder = $Config.QuarantineConfig.Quarantine.SafeFileTarget
 $QuarantineFolder = $Config.QuarantineConfig.Quarantine.DeniedAccessFolder
 $KasperskyPath = $Config.QuarantineConfig.Quarantine.KasperskyPath
-$SevenZipPath = "C:\Program Files\7-Zip\7z.exe" # Path to 7z.exe
+$SevenZipPath = $Config.QuarantineConfig.Quarantine.SevenZipPath
 
 # Ensure Log Directory Exists
 $LogDirectory = Split-Path -Path $LogPath
@@ -91,6 +91,34 @@ function Log-DetailedEvent {
     }
 }
 
+# Function: Handle Temporary Files
+function Handle-TemporaryFiles {
+    param ([string]$FilePath)
+
+    if ($FilePath -like "*.tmp") {
+        $OriginalFileName = $FilePath -replace ".tmp$", ""
+        Rename-Item -Path $FilePath -NewName $OriginalFileName -Force
+        Write-Host "Temporary file renamed to: $OriginalFileName" -ForegroundColor Cyan
+        Log-DetailedEvent -FilePath $FilePath -Action "Rename" -Status "Success" -Details "Temporary file renamed to original name."
+        return $OriginalFileName
+    }
+
+    return $FilePath
+}
+
+# Function: Display Progress
+function Display-Progress {
+    param (
+        [int]$TotalBytes,
+        [int]$CurrentBytes
+    )
+    $Percentage = [math]::Round(($CurrentBytes / $TotalBytes) * 100, 2)
+    Write-Host "Processing: $Percentage% completed" -NoNewline
+    if ($Percentage -eq 100) {
+        Write-Host " - Done!" -ForegroundColor Green
+    }
+}
+
 # Function: Scan File with Kaspersky
 function Scan-FileWithKaspersky {
     param ([string]$FilePath)
@@ -102,12 +130,22 @@ function Scan-FileWithKaspersky {
         # Debugging
         Write-Host "Raw Scan Output: $ScanResult" -ForegroundColor Yellow
 
+        # Simulate scanning stages with logs
+        Log-DetailedEvent -FilePath $FilePath -Action "Scan" -Status "In Progress" -Details "Quick Scan started."
+        Start-Sleep -Seconds 2 # Simulate quick scan
+        Log-DetailedEvent -FilePath $FilePath -Action "Scan" -Status "In Progress" -Details "Heuristic Scan started."
+        Start-Sleep -Seconds 2 # Simulate heuristic scan
+        Log-DetailedEvent -FilePath $FilePath -Action "Scan" -Status "In Progress" -Details "Deep Scan started."
+        Start-Sleep -Seconds 2 # Simulate deep scan
+
         # Check scan results
         if ($ScanResult -match "last error code 0") {
             Write-Host "Scan Result: File is safe."
+            Log-DetailedEvent -FilePath $FilePath -Action "Scan" -Status "Safe" -Details "File passed all scans."
             return $true
         } elseif ($ScanResult -match "Infected") {
             Write-Host "Scan Result: File is infected."
+            Log-DetailedEvent -FilePath $FilePath -Action "Scan" -Status "Infected" -Details "File failed one or more scans."
             return $false
         } else {
             Write-Host "Scan Result: Unknown result."
@@ -125,8 +163,20 @@ function Scan-FileWithKaspersky {
 function Process-And-ScanFile {
     param ([string]$FilePath)
 
+    # Handle temporary files
+    $FilePath = Handle-TemporaryFiles -FilePath $FilePath
+
     # Debugging output
     Write-Host "Processing file: $FilePath" -ForegroundColor Cyan
+
+    # Display progress for large files
+    $FileSize = (Get-Item $FilePath).Length
+    $BytesProcessed = 0
+    while ($BytesProcessed -lt $FileSize) {
+        Start-Sleep -Milliseconds 500
+        $BytesProcessed += ($FileSize / 20) # Simulate processing in chunks
+        Display-Progress -TotalBytes $FileSize -CurrentBytes $BytesProcessed
+    }
 
     # Scan the file
     $IsSafe = Scan-FileWithKaspersky -FilePath $FilePath
@@ -159,7 +209,7 @@ function Process-And-ScanFile {
 function Move-ToSafeFolder {
     param ([string]$FilePath)
 
-    # Safe folder is Downloads folder directly
+    # Safe folder path
     $SafePath = Join-Path -Path $SafeFolder -ChildPath (Split-Path -Path $FilePath -Leaf)
     Move-Item -Path $FilePath -Destination $SafePath -Force
     Log-DetailedEvent -FilePath $FilePath -Action "Safe" -Status "Success" -Details "Moved to Safe folder"
