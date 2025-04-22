@@ -118,8 +118,9 @@ This update introduces new features, enhancements, and fixes to the **Secure Dow
 ---
 
 ### Notes
-- Ensure that PowerShell 5.1 or later is installed.
+- Ensure that PowerShell 5.1 or later is installed. (Created on Powershell 7.5.0)
 - Validate your XML configuration against the XSD schema before running the script.
-- For issues or suggestions, please create an issue in the repository.
+- I will not provide any more updates past this one, feel free to update yourselves.
+- I created and run this on a very powerfull machine, May be resource intensive for less powerful machines, this is a large script that runs constantly throughout your use.
 
 ---
