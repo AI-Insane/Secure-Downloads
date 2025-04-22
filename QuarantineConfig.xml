@@ -15,10 +15,16 @@
     <!-- Quarantine Configuration -->
     <Quarantine>
         <MonitoringFolder>C:\Users\ryanf\Downloads\QuarantineDownloads</MonitoringFolder> <!-- Folder to monitor -->
-        <SafeFileTarget>C:\Users\ryanf\Downloads</SafeFileTarget> <!-- Use Downloads as the Safe Files folder -->
+        <SafeFileTarget>C:\Users\ryanf\Downloads</SafeFileTarget> <!-- Safe folder -->
         <DeniedAccessFolder>C:\Users\ryanf\Downloads\QuarantineDownloads\DeniedAccess</DeniedAccessFolder> <!-- Quarantine folder -->
         <KasperskyPath>C:\Program Files (x86)\Kaspersky Lab\Kaspersky 21.20\avp.com</KasperskyPath> <!-- Kaspersky command-line scanner path -->
         <SevenZipPath>C:\Program Files\7-Zip\7z.exe</SevenZipPath> <!-- 7-Zip executable path -->
+        <ProgressDisplay>true</ProgressDisplay> <!-- Enable live progress display -->
+        <ScanStages>
+            <Stage>Quick</Stage>
+            <Stage>Heuristic</Stage>
+            <Stage>Deep</Stage>
+        </ScanStages>
     </Quarantine>
     
     <!-- Self-Repair Configuration -->
@@ -54,7 +60,7 @@ Import-Module -Name BurntToast -ErrorAction Stop
                 </CodeSnippet>
             </Instruction>
             <Instruction>
-                <Trigger>Scan result unknown</Trigger> <!-- Added new trigger for unknown result -->
+                <Trigger>Scan result unknown</Trigger> <!-- Trigger for handling unknown scan results -->
                 <CodeSnippet>
                     <![CDATA[
 Write-Host "Unknown scan result encountered for: $FilePath. Review Kaspersky output for details."
@@ -70,7 +76,7 @@ Validate-XML -XmlPath "C:\Users\ryanf\Documents\QuarantineConfig.xml" -XsdPath "
                 </CodeSnippet>
             </Instruction>
             <Instruction>
-                <Trigger>Temporary file detected</Trigger> <!-- New trigger for handling .tmp files -->
+                <Trigger>Temporary file detected</Trigger> <!-- Handling temporary (.tmp) files -->
                 <CodeSnippet>
                     <![CDATA[
 if ((Test-Path -Path $FilePath) -and ($FilePath -like "*.tmp")) {
@@ -82,7 +88,18 @@ if ((Test-Path -Path $FilePath) -and ($FilePath -like "*.tmp")) {
                 </CodeSnippet>
             </Instruction>
             <Instruction>
-                <Trigger>Large folder handling</Trigger> <!-- New trigger for handling large folders -->
+                <Trigger>ZIP file detected</Trigger> <!-- Handling ZIP files -->
+                <CodeSnippet>
+                    <![CDATA[
+if ($FilePath -like "*.zip") {
+    Process-ZipFile -FilePath $FilePath
+    Write-Host "Processed ZIP file: $FilePath"
+}
+]]>
+                </CodeSnippet>
+            </Instruction>
+            <Instruction>
+                <Trigger>Large folder handling</Trigger> <!-- Handling large folders -->
                 <CodeSnippet>
                     <![CDATA[
 if (Test-Path -Path $FilePath -PathType Container) {
